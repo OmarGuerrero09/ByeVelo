@@ -1,0 +1,95 @@
+-- 1. Crear la nueva base de datos
+CREATE DATABASE IF NOT EXISTS ByeVelo;
+
+-- 2. Seleccionar la base de datos para trabajar en ella
+USE ByeVelo;
+
+-- 3. Crear la tabla de usuarios para el Login
+CREATE TABLE IF NOT EXISTS usuarios (
+    id_usuario INT AUTO_INCREMENT PRIMARY KEY,
+    usuario VARCHAR(50) NOT NULL,
+    password VARCHAR(50) NOT NULL
+);
+
+-- 4. Insertar los usuarios para poder entrar al sistema
+INSERT INTO usuarios (usuario, password) VALUES ('admin', 'admin123');
+INSERT INTO usuarios (usuario, password) VALUES ('omar', '1234');
+
+-- 5. Crear la tabla de clientes 
+CREATE TABLE IF NOT EXISTS clientes (
+    id_cliente INT AUTO_INCREMENT PRIMARY KEY,
+    nombre_completo VARCHAR(150) NOT NULL,
+    telefono VARCHAR(15),
+    correo VARCHAR(100),
+    fecha_nacimiento VARCHAR(20)
+);
+
+-- 6. Crear la tabla de citas (Agenda)
+CREATE TABLE IF NOT EXISTS citas (
+    id_cita INT AUTO_INCREMENT PRIMARY KEY,
+    fecha_hora DATETIME,
+    id_cliente INT,
+    servicio VARCHAR(100),
+    estado VARCHAR(50),
+    FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente)
+);
+
+-- 7. Crear la tabla de ventas
+CREATE TABLE IF NOT EXISTS ventas (
+    folio INT AUTO_INCREMENT PRIMARY KEY,
+    fecha_hora DATETIME,
+    id_cliente INT,
+    total DECIMAL(10,2),
+    metodo_pago VARCHAR(50),
+    FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente)
+);
+	-- 1. Crear y usar la base de datos
+CREATE DATABASE IF NOT EXISTS ByeVelo;
+USE ByeVelo;
+
+-- 2. Limpiar tablas anteriores para evitar el error "ya existe"
+DROP TABLE IF EXISTS ventas;
+DROP TABLE IF EXISTS citas;
+DROP TABLE IF EXISTS clientes;
+DROP TABLE IF EXISTS usuarios;
+
+-- 3. Crear la tabla de usuarios
+CREATE TABLE usuarios (
+    id_usuario INT AUTO_INCREMENT PRIMARY KEY,
+    usuario VARCHAR(50) NOT NULL,
+    password VARCHAR(50) NOT NULL
+);
+
+-- 4. Insertar los usuarios de acceso
+INSERT INTO usuarios (usuario, password) VALUES ('admin', 'admin123');
+INSERT INTO usuarios (usuario, password) VALUES ('omar', '1234');
+
+-- 5. Crear la tabla de clientes
+CREATE TABLE clientes (
+    id_cliente INT AUTO_INCREMENT PRIMARY KEY,
+    nombre_completo VARCHAR(150) NOT NULL,
+    telefono VARCHAR(15),
+    correo VARCHAR(100),
+    fecha_nacimiento VARCHAR(20)
+);
+
+-- 6. Crear la tabla de citas (Ajustada a VentanaAgenda.java)
+CREATE TABLE citas (
+    id_cita INT AUTO_INCREMENT PRIMARY KEY,
+    fecha_hora VARCHAR(50), 
+    cliente VARCHAR(100),
+    servicio VARCHAR(100),
+    estado VARCHAR(50)
+);
+
+-- 7. Crear la tabla de ventas (Ajustada a VentanaVentas.java)
+CREATE TABLE ventas (
+    folio INT AUTO_INCREMENT PRIMARY KEY,
+    fecha_hora TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Se pone la fecha automáticamente
+    cliente VARCHAR(100),
+    servicios_productos TEXT,
+    cantidad INT DEFAULT 1,
+    total DECIMAL(10,2),
+    metodo_pago VARCHAR(50),
+    estado VARCHAR(50)
+);

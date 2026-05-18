@@ -93,3 +93,4 @@ CREATE TABLE ventas (
     metodo_pago VARCHAR(50),
     estado VARCHAR(50)
 );
+ALTER TABLE citas MODIFY servicio TEXT;

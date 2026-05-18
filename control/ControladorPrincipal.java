@@ -23,7 +23,24 @@ public class ControladorPrincipal implements ActionListener {
         this.vista.btnVentas.addActionListener(this);
         this.vista.btnRegistrarVenta.addActionListener(this);
         this.vista.btnCerrarSesion.addActionListener(this);
+        // ACTIVAR LA BARRA DE BÚSQUEDA (Reacciona al presionar Enter)
+        this.vista.txtBusqueda.addActionListener(this);
 
+        // Efecto visual: Quitar el texto por defecto al hacer clic en la barra
+        this.vista.txtBusqueda.addFocusListener(new java.awt.event.FocusAdapter() {
+            @Override
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                if (vista.txtBusqueda.getText().equals(" Búsqueda de Cliente")) {
+                    vista.txtBusqueda.setText("");
+                }
+            }
+            @Override
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                if (vista.txtBusqueda.getText().isEmpty()) {
+                    vista.txtBusqueda.setText(" Búsqueda de Cliente");
+                }
+            }
+        });
         // Cargar los contadores al iniciar la ventana
         actualizarContadores();
 
@@ -103,12 +120,85 @@ public class ControladorPrincipal implements ActionListener {
             new ControladorAgenda(vAgenda);
             vAgenda.setVisible(true);
         } 
-        
+        // --- BÚSQUEDA RÁPIDA DE CLIENTE ---
+        else if (e.getSource() == vista.txtBusqueda) {
+            String busqueda = vista.txtBusqueda.getText().trim();
+            // Evitar buscar si está vacío o tiene el texto por defecto
+            if (!busqueda.isEmpty() && !busqueda.equals("Búsqueda de Cliente")) {
+                realizarBusqueda(busqueda);
+            }
+        }
         // --- CERRAR SESIÓN ---
         else if (e.getSource() == vista.btnCerrarSesion) {
             vista.dispose();
             VentanaLogin vLogin = new VentanaLogin();
             new ControladorLogin(vLogin).iniciar();
+        }
+    }
+    // MÉTODO PARA BUSCAR CLIENTES EN LA BD Y MOSTRAR SUS CITAS
+    private void realizarBusqueda(String nombre) {
+        try (Connection conn = conexion.conectar()) {
+            
+            // EL TRUCO: Reemplazamos los espacios por "%" para que busque cualquier cosa entre las palabras
+            // Si buscas "Juan Perez", se convierte en "%Juan%Perez%" y encontrará a "Juan Carlos Perez"
+            String busquedaSQL = "%" + nombre.replace(" ", "%") + "%";
+
+            // 1. Buscar al cliente en la tabla clientes
+            String sqlCliente = "SELECT * FROM clientes WHERE nombre_completo LIKE ?";
+            PreparedStatement pstCliente = conn.prepareStatement(sqlCliente);
+            pstCliente.setString(1, busquedaSQL);
+            ResultSet rsCliente = pstCliente.executeQuery();
+
+            StringBuilder resultados = new StringBuilder();
+            boolean hayResultados = false;
+
+            while (rsCliente.next()) {
+                hayResultados = true;
+                String nombreEncontrado = rsCliente.getString("nombre_completo");
+                
+                // Datos del cliente
+                resultados.append("👤 Nombre: ").append(nombreEncontrado).append("\n")
+                          .append("📞 Teléfono: ").append(rsCliente.getString("telefono")).append("\n")
+                          .append("✉️ Correo: ").append(rsCliente.getString("correo")).append("\n");
+
+                // 2. Buscar si este cliente tiene citas registradas
+                String sqlCitas = "SELECT * FROM citas WHERE cliente = ?";
+                PreparedStatement pstCitas = conn.prepareStatement(sqlCitas);
+                pstCitas.setString(1, nombreEncontrado);
+                ResultSet rsCitas = pstCitas.executeQuery();
+
+                boolean tieneCitas = false;
+                resultados.append("📅 CITAS:\n");
+                
+                while (rsCitas.next()) {
+                    tieneCitas = true;
+                    resultados.append("   • Fecha/Hora: ").append(rsCitas.getString("fecha_hora")).append("\n")
+                              .append("     Servicio: ").append(rsCitas.getString("servicio")).append("\n")
+                              .append("     Estado: ").append(rsCitas.getString("estado")).append("\n\n");
+                }
+
+                if (!tieneCitas) {
+                    resultados.append("   No tiene citas programadas.\n");
+                }
+                
+                resultados.append("------------------------------------------\n");
+                
+                rsCitas.close();
+                pstCitas.close();
+            }
+
+            // Mostrar el cuadro de diálogo con toda la información armada
+            if (hayResultados) {
+                JOptionPane.showMessageDialog(vista, resultados.toString(), "Resultados de la búsqueda", JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(vista, "No se encontró ningún cliente que coincida con: " + nombre, "Sin resultados", JOptionPane.WARNING_MESSAGE);
+            }
+            
+            rsCliente.close();
+            pstCliente.close();
+
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(vista, "Error al consultar la base de datos: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 }

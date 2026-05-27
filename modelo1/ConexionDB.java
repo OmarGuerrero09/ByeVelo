@@ -9,9 +9,9 @@ import java.sql.SQLException;
  */
 public class ConexionDB {
     // Apuntamos a la nueva base de datos ByeVelo
-    private static final String DB_URL = "jdbc:mysql://localhost:3306/byevelo";
-    private static final String DB_USER = "byeVelo";
-    private static final String DB_PASSWORD = "Byevelo2026";
+    private static final String DB_URL = "jdbc:mysql://127.0.0.1:3306/ByeVelo";
+    private static final String DB_USER = "root";
+    private static final String DB_PASSWORD = "Mapaches";
 
     public Connection conectar() {
         Connection conexion = null;
